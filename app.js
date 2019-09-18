@@ -4,9 +4,18 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose')
+var config = require('./config')
 
 var index = require('./routes/index');
 var users = require('./routes/users');
+
+// 连接数据库
+const url = config.mongoUrl
+const connect = mongoose.connect(url, {useNewUrlParser: true, useCreateIndex: true})
+connect.then(db => {
+  console.log('Connect correct to server')
+}).catch(err => {console.log(err)})
 
 var app = express();
 
