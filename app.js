@@ -6,7 +6,9 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose')
 var config = require('./config')
+var passport = require('passport')
 
+// 引入路由
 var index = require('./routes/index');
 var users = require('./routes/users');
 
@@ -26,6 +28,8 @@ app.all('*', (req, res, next) => {
     res.redirect(307, `https://${req.hostname}:${app.get('secPort')}${req.url}`)
   }
 })
+
+app.use(passport.initialize())
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
