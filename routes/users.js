@@ -29,7 +29,7 @@ router.post('/signup', (req, res, next) => {
         passport.authenticate('local')(req, res, () => {
           res.setHeader('Content-Type', 'application/json')
           res.statusCode = 200
-          res.json({resulte: true, message: 'registration successful!'})
+          res.json({result: true, message: 'registration successful!'})
         })
       })
     }
@@ -40,15 +40,15 @@ router.post('/login', passport.authenticate('local'), (req, res, next) => {
   let token = authenticate.getToken({_id: req.user._id})
   res.setHeader('Content-Type', 'application/json')
   res.cookie('token', token, {httpOnly: true})
-  res.status(200).json({resulte: true, token: token, message: 'You are successful logged in!'})
+  res.status(200).json({result: true, token: token, message: 'You are successful logged in!'})
 })
 router.post('/logout', (req, res, next) => {
   if (req.cookies.token) {
     res.clearCookie('token')
     res.setHeader('Content-Type', 'application/json')
-    res.status(200).json({resulte: true, message: 'logout success.'})
+    res.status(200).json({result: true, message: 'logout success.'})
   } else {
-    res.status(403).json({resulte: false, message: ''})
+    res.status(403).json({result: false, message: ''})
   }
 })
 

@@ -38,7 +38,7 @@ exports.jwtPassport = passport.use(new JwtStrategy(options, (jwt_payload, done) 
     }
   })
 }))
-// exports.verifyUser = passport.authenticate('jwt', {
-//   session: false,
-//   failureRedirect: '/error/auth'
-// })
+exports.verifyUser = passport.authenticate('jwt', {
+  session: false
+  // failureRedirect: '/error/auth'
+})
