@@ -24,7 +24,7 @@ var options = {
   secretOrKey: config.secretKey
 }
 
-exports.getToken = (user) => jwt.sign(user, config.secretKey, {expiresIn: '15s'})
+exports.getToken = (user) => jwt.sign(user, config.secretKey, {expiresIn: 900})
 exports.jwtPassport = passport.use(new JwtStrategy(options, (jwt_payload, done) => {
   User.findOne({_id: jwt_payload._id}, (err, user) => {
     if (err) {

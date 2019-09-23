@@ -2,11 +2,15 @@ let express = require('express'),
   router = express.Router(),
   bodyParser = require('body-parser'),
   Dish = require('../models/dish'),
-  authenticate = require('../authenticate')
+  authenticate = require('../authenticate'),
+  cors = require('./cors')
 
 router.use(bodyParser.json())
 
 router.route('/')
+.options(cors.corsWithOptions, (req, res) => {
+  res.sendStatus(200)
+})
 .get((req, res, next) => {
   // 感觉查所有的菜品不安全
   Dish.find({}).then(dishes => {

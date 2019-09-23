@@ -25,7 +25,6 @@ router.post('/signup', (req, res, next) => {
           res.setHeader('Content-Type', 'application/json')
           res.status(500).json({error: err})
         }
-        console.log('string')
         passport.authenticate('local')(req, res, () => {
           res.setHeader('Content-Type', 'application/json')
           res.statusCode = 200
@@ -36,7 +35,6 @@ router.post('/signup', (req, res, next) => {
   })
 })
 router.post('/login', passport.authenticate('local'), (req, res, next) => {
-  console.log(req.user)
   let token = authenticate.getToken({_id: req.user._id})
   res.setHeader('Content-Type', 'application/json')
   res.cookie('token', token, {httpOnly: true})
@@ -44,7 +42,7 @@ router.post('/login', passport.authenticate('local'), (req, res, next) => {
 })
 router.post('/logout', (req, res, next) => {
   if (req.cookies.token) {
-    res.clearCookie('token')
+    res.cookie('token', null, {httpOnly: true, expires: new Date()})
     res.setHeader('Content-Type', 'application/json')
     res.status(200).json({result: true, message: 'logout success.'})
   } else {
