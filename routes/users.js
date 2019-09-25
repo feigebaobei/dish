@@ -4,12 +4,19 @@ var User = require('../models/user')
 var passport = require('passport')
 var bodyParser = require('body-parser')
 var authenticate = require('../authenticate')
+var cors = require('./cors')
 router.use(bodyParser.json())
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
+router.route('/')
+// 这是用来测试的接口
+.get(function(req, res, next) {
+  console.log(req.cookies)
   res.send('respond with a resource');
-});
+})
+.post((req, res, next) => {
+  res.send('root post')
+})
 
 router.post('/signup', (req, res, next) => {
   User.register(new User({username: req.body.username}), req.body.password, (err, user) => {
@@ -34,12 +41,30 @@ router.post('/signup', (req, res, next) => {
     }
   })
 })
-router.post('/login', passport.authenticate('local'), (req, res, next) => {
+
+router.route('/isLogin')
+.options(cors.corsWithOptions, (req, res) => {
+  // console.log(req.origin)
+  // res.sendStatus(200)
+})
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+  // let token = res.cookies.token
+  // console.log(req, res)
+  res.send('string')
+})
+
+router.route('/login')
+.options(cors.corsWithOptions, (req, res) => {
+  // console.log(req.origin)
+  // res.statusCode(200)
+})
+.post(cors.corsWithOptions, passport.authenticate('local'), (req, res, next) => {
   let token = authenticate.getToken({_id: req.user._id})
   res.setHeader('Content-Type', 'application/json')
   res.cookie('token', token, {httpOnly: true})
   res.status(200).json({result: true, token: token, message: 'You are successful logged in!'})
 })
+
 router.post('/logout', (req, res, next) => {
   if (req.cookies.token) {
     res.cookie('token', null, {httpOnly: true, expires: new Date()})
