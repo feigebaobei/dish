@@ -11,9 +11,15 @@ router.route('/')
 .options(cors.corsWithOptions, (req, res) => {
   res.sendStatus(200)
 })
-.get((req, res, next) => {
+.get(cors.corsWithOptions, (req, res, next) => {
   // 感觉查所有的菜品不安全
-  Dish.find({}).then(dishes => {
+  let {name, taste} = req.query
+  taste = taste || []
+  let option = {
+    name: new RegExp(name, 'i'),
+    taste: new RegExp(taste.length ? taste.join('|') : '', 'i')
+  }
+  Dish.find(option).then(dishes => {
     res.setHeader('Content-Type', 'application/json')
     res.status(200).json({result: true, data: dishes})
   }).catch(err => {
