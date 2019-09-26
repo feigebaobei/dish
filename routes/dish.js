@@ -21,16 +21,14 @@ router.route('/')
     res.status(500).json({result: false, message: 'error for query'})
   })
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   let {name, description, price} = req.body
   let dish = new Dish({name: name, description: description, price: price})
   dish.save((err, doc) => {
     if (err) {
-      res.setHeader('Content-Type', 'application/json')
       res.status(500).json({result: false, message: '', error: err})
     } else {
-      res.setHeader('Content-Type', 'application/json')
-      res.status(200).json({result: true, message: 'add dish successfully.'})
+      res.status(200).json({result: true, message: 'add dish successfully.', data: doc})
     }
   })
 })
@@ -40,5 +38,14 @@ router.route('/')
 .delete((req, res, next) => {
   res.send('delete')
 })
+
+// router.route('/test')
+// .options(cors.corsWithOptions, (req, res) => {
+//   res.sendStatus(200)
+// })
+// .get()
+// .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+//   res.status(200).json({key: 'value'})
+// })
 
 module.exports = router

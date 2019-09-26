@@ -56,7 +56,7 @@ router.route('/isLogin')
 router.route('/login')
 .options(cors.corsWithOptions, (req, res) => {
   // console.log(req.origin)
-  // res.statusCode(200)
+  res.sendStatus(200)
 })
 .post(cors.corsWithOptions, passport.authenticate('local'), (req, res, next) => {
   let token = authenticate.getToken({_id: req.user._id})
