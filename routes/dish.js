@@ -12,20 +12,42 @@ router.route('/')
   res.sendStatus(200)
 })
 .get(cors.corsWithOptions, (req, res, next) => {
-  // 感觉查所有的菜品不安全
-  let {name, taste} = req.query
+  let {name, taste, page, size} = req.query
   taste = taste || []
-  let option = {
+  let filter = {
     name: new RegExp(name, 'i'),
     taste: new RegExp(taste.length ? taste.join('|') : '', 'i')
   }
-  Dish.find(option).then(dishes => {
-    res.setHeader('Content-Type', 'application/json')
-    res.status(200).json({result: true, data: dishes})
+  Dish.count(filter).exec().then(amount => {
+    // 最多100页，每页最多200条
+    page = page < -1 ? 0 : page
+    page = page > 100 ? 100 : page
+    size = size > 200 ? 200 : size
+    size = size < -1 ? 0 : size
+    let setOptions = {
+      skip: page * size,
+      limit: size
+    }
+    Dish.find(filter, null, setOptions).exec().then(dishes => {
+      res.setHeader('Content-Type', 'application/json')
+      res.status(200).json({
+        result: true,
+        data: {
+          dishes: dishes,
+          amount: amount
+        }
+      })
+    })
   }).catch(err => {
-    res.setHeader('Content-Type', 'application/json')
     res.status(500).json({result: false, message: 'error for query'})
   })
+  // Dish.find(filter, null, setOptions).then(dishes => {
+  //   res.setHeader('Content-Type', 'application/json')
+  //   res.status(200).json({result: true, data: {dishes: dishes, amount: ''}})
+  // }).catch(err => {
+  //   res.setHeader('Content-Type', 'application/json')
+  //   res.status(500).json({result: false, message: 'error for query'})
+  // })
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   let {name, description, price} = req.body
