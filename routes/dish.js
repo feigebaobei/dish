@@ -18,15 +18,17 @@ router.route('/')
     name: new RegExp(name, 'i'),
     taste: new RegExp(taste.length ? taste.join('|') : '', 'i')
   }
-  Dish.count(filter).exec().then(amount => {
-    // 最多100页，每页最多200条
+  Dish.countDocuments(filter).exec().then(amount => {
+    // res.status(200).json({data: {amount: amount}})
+    // // res.send(amount)
+    // // 最多100页，每页最多200条
     page = page < -1 ? 0 : page
     page = page > 100 ? 100 : page
     size = size > 200 ? 200 : size
     size = size < -1 ? 0 : size
     let setOptions = {
       skip: page * size,
-      limit: size
+      limit: Number(size)
     }
     Dish.find(filter, null, setOptions).exec().then(dishes => {
       res.setHeader('Content-Type', 'application/json')
@@ -41,13 +43,6 @@ router.route('/')
   }).catch(err => {
     res.status(500).json({result: false, message: 'error for query'})
   })
-  // Dish.find(filter, null, setOptions).then(dishes => {
-  //   res.setHeader('Content-Type', 'application/json')
-  //   res.status(200).json({result: true, data: {dishes: dishes, amount: ''}})
-  // }).catch(err => {
-  //   res.setHeader('Content-Type', 'application/json')
-  //   res.status(500).json({result: false, message: 'error for query'})
-  // })
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   let {name, description, price} = req.body
