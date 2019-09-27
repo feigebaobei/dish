@@ -15,6 +15,7 @@ router.route('/')
   let {name, taste, page, size} = req.query
   taste = taste || []
   let filter = {
+    delete: false,
     name: new RegExp(name, 'i'),
     taste: new RegExp(taste.length ? taste.join('|') : '', 'i')
   }
