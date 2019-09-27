@@ -62,6 +62,45 @@ router.route('/')
   res.send('delete')
 })
 
+router.route('/:dishId')
+.options(cors.corsWithOptions, (req, res) => {
+  res.sendStatus(200)
+})
+.get(cors.corsWithOptions, (req, res, next) => {
+  let dishId = req.params.dishId
+  Dish.findById(dishId).exec().then(dish => {
+    // 价格的单位由分变为元的工作在前端做
+    res.status(200).json({result: true, message: '', data: dish})
+  }).catch(err => {
+    res.status(500).json({result: false, message: '', error: err})
+  })
+})
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+  res.send('post')
+})
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+  Dish.findById(req.params.dishId).exec().then(dish => {
+    if (dish !== null) {
+      let {name, description, price} = req.body
+      dish.name = name
+      dish.description = description
+      dish.price = price
+      dish.save().then(dish => {
+        res.status(200).json({result: true, message: '', data: dish})
+      }).catch(err => {
+        res.status(500).json({result: false, message: '保存数据时出错', error: err})
+      })
+    } else {
+      res.status(404).json({result: false, message: 'do not find.'})
+    }
+  }).catch(err => {
+    res.status(500).json({result: false, message: `do not find dishId:${req.params.dishId}`, error: err})
+  })
+})
+.delete(cors.corsWithOptions, (req, res, next) => {
+  res.send('delete')
+})
+
 // router.route('/test')
 // .options(cors.corsWithOptions, (req, res) => {
 //   res.sendStatus(200)
