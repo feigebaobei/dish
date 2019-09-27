@@ -76,7 +76,7 @@ router.route('/:dishId')
   })
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-  res.send('post')
+  res.status(404).json({result: false, message: '', error: {}})
 })
 .put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   Dish.findById(req.params.dishId).exec().then(dish => {
@@ -98,7 +98,22 @@ router.route('/:dishId')
   })
 })
 .delete(cors.corsWithOptions, (req, res, next) => {
-  res.send('delete')
+  Dish.findOne({_id: req.params.dishId}).exec().then(dish => {
+    dish.delete = true
+    dish.save().then(dish => {
+      console.log(dish)
+      res.status(200).json({result: true, message: '', data: dish})
+    })
+  }).catch(err => {
+    next(err)
+  })
+  // 硬删除
+  // Dish.findOneAndRemove({_id: req.params.dishId}).exec().then(doc => {
+  //   console.log(doc)
+  //   res.status(200).json({result: true, message: '', data: doc})
+  // }).catch(err => {
+  //   next(err)
+  // })
 })
 
 // router.route('/test')

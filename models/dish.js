@@ -17,6 +17,10 @@ let dishSchema = new Schema({
     type: Currency,
     required: true,
     min: 0
+  },
+  delete: {
+    type: Boolean,
+    default: false
   }
   // comments: []
 }, {

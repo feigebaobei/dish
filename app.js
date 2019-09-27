@@ -15,7 +15,7 @@ var dish = require('./routes/dish');
 
 // 连接数据库
 const url = config.mongoUrl
-const connect = mongoose.connect(url, {useNewUrlParser: true, useCreateIndex: true})
+const connect = mongoose.connect(url, {useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false})
 connect.then(db => {
   console.log('Connect correct to server')
 }).catch(err => {console.log(err)})
