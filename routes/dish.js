@@ -3,9 +3,31 @@ let express = require('express'),
   bodyParser = require('body-parser'),
   Dish = require('../models/dish'),
   authenticate = require('../authenticate'),
-  cors = require('./cors')
+  cors = require('./cors'),
+  multer = require('multer')
+  // formidable = require('express-formidabe')
 
 router.use(bodyParser.json())
+router.use(bodyParser.urlencoded({extended: false}))
+
+var storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/images')
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${file.originalname}-${Date.now()}`)
+  }
+})
+var imageFileFilter = (req, file, cb) => {
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    return cb(new Error('You can upload only image files!'), false)
+  }
+  cb(null, true)
+}
+var upload = multer({
+  storage: storage,
+  fileFilter: imageFileFilter
+})
 
 router.route('/')
 .options(cors.corsWithOptions, (req, res) => {
@@ -15,7 +37,8 @@ router.route('/')
   let {name, taste, page, size} = req.query
   taste = taste || []
   let filter = {
-    delete: false,
+    // delete: false,
+    delete: {$not: {$eq: true}},
     name: new RegExp(name, 'i'),
     taste: new RegExp(taste.length ? taste.join('|') : '', 'i')
   }
@@ -42,12 +65,30 @@ router.route('/')
       })
     })
   }).catch(err => {
-    res.status(500).json({result: false, message: 'error for query'})
+    res.status(500).json({result: false, message: 'error for query', error: err})
   })
 })
-.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-  let {name, description, price} = req.body
-  let dish = new Dish({name: name, description: description, price: price})
+.post(cors.corsWithOptions, authenticate.verifyUser, upload.fields([
+    {name: 'imageBig', maxCount: 1},
+    {name: 'imageMiddle', maxCount: 1},
+    {name: 'imageSmall', maxCount: 1}
+  ]), (req, res, next) => {
+  console.log('files', req.files)
+  console.log('body', req.body)
+  let {name, description, taste, price, compose, status, category, series} = req.body
+  let dish = new Dish({
+    imageBig: '/images/big',
+    imageMiddle: '/images/midlle',
+    imageSmall: '/images/small',
+    name: name,
+    description: description,
+    taste: taste,
+    price: price,
+    compose: compose,
+    status: status,
+    category: category,
+    series: series
+  })
   dish.save((err, doc) => {
     if (err) {
       res.status(500).json({result: false, message: '', error: err})
