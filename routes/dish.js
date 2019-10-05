@@ -43,10 +43,15 @@ router.route('/')
   let {name, taste, page, size} = req.query
   taste = taste || []
   let filter = {
-    // delete: false,
-    delete: {$not: {$eq: true}},
-    name: new RegExp(name, 'i'),
-    taste: new RegExp(taste.length ? taste.join('|') : '', 'i')
+    delete: {$not: {$eq: true}}
+  }
+  if (name) {
+    filter.name = new RegExp(name, 'i')
+  }
+  if (taste.length) {
+    filter.taste = {$in: taste.map((item) => {
+      return Number(item)
+    })}
   }
   Dish.countDocuments(filter).exec().then(amount => {
     // res.status(200).json({data: {amount: amount}})
