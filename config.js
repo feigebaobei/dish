@@ -106,5 +106,6 @@ module.exports = {
       label: '重度咸',
       value: 502
     }
-  ]
+  ],
+  imageExtend: ['jpg', 'jpeg', 'png', 'gif']
 }

@@ -3,9 +3,16 @@ var router = express.Router();
 var User = require('../models/user')
 var passport = require('passport')
 var bodyParser = require('body-parser')
+// var multipart = require('connect-multiparty')
+// var multer = require('multer')
 var authenticate = require('../authenticate')
 var cors = require('./cors')
+
+// var mulitpartMiddleware = multipart()
+// var upload = multer({dest: __dirname+'/public/images'})
 router.use(bodyParser.json())
+// router.use(bodyParser.urlencoded({extended: true}))
+router.use(bodyParser.urlencoded({ extended: false }))
 
 /* GET users listing. */
 router.route('/')
@@ -55,7 +62,7 @@ router.route('/isLogin')
 
 router.route('/login')
 .options(cors.corsWithOptions, (req, res) => {
-  // console.log(req.origin)
+  console.log(req.origin)
   res.sendStatus(200)
 })
 .post(cors.corsWithOptions, passport.authenticate('local'), (req, res, next) => {

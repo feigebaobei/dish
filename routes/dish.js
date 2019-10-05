@@ -5,17 +5,23 @@ let express = require('express'),
   authenticate = require('../authenticate'),
   cors = require('./cors'),
   multer = require('multer')
+  config = require('../config')
   // formidable = require('express-formidabe')
 
 router.use(bodyParser.json())
-router.use(bodyParser.urlencoded({extended: false}))
 
 var storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'public/images')
   },
   filename: (req, file, cb) => {
-    cb(null, `${file.originalname}-${Date.now()}`)
+    let reg = new RegExp(`^.*(?=\.(${config.imageExtend.join('|')})$)`)
+    let res = file.originalname.match(reg)
+    let [name, extend] = res
+    // [name, extend, index: n, input: 'string', group: undefined]
+    // 原始名称 + 时间戳 + 5位随机数
+    cb(null, `${name}${Date.now()}${Math.floor(Math.random() * 100000)}.${extend}`)
+    // cb(null, `${file.originalname}-${Date.now()}`)
   }
 })
 var imageFileFilter = (req, file, cb) => {
@@ -73,13 +79,13 @@ router.route('/')
     {name: 'imageMiddle', maxCount: 1},
     {name: 'imageSmall', maxCount: 1}
   ]), (req, res, next) => {
-  console.log('files', req.files)
+  // console.log('files', req.files)
   console.log('body', req.body)
   let {name, description, taste, price, compose, status, category, series} = req.body
   let dish = new Dish({
-    imageBig: '/images/big',
-    imageMiddle: '/images/midlle',
-    imageSmall: '/images/small',
+    imageBig: `${req.files.imageBig[0].destination}/${req.files.imageBig[0].filename}`,
+    imageMiddle: `${req.files.imageMiddle[0].destination}/${req.files.imageMiddle[0].filename}`,
+    imageSmall: `${req.files.imageSmall[0].destination}/${req.files.imageSmall[0].filename}`,
     name: name,
     description: description,
     taste: taste,

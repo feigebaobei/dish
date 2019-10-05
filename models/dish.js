@@ -30,6 +30,7 @@ let dishSchema = new Schema({
   // 说明
   // 口味
   // 价格
+  // 配料
   // 评论
   // 在架状态
   // 删除状态
@@ -74,6 +75,11 @@ let dishSchema = new Schema({
     type: Currency,
     required: true,
     min: 0
+  },
+  compose: {
+    type: String,
+    required: true,
+    default: ''
   },
   comments: [commentSchema],
   status: {
