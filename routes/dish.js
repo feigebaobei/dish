@@ -47,11 +47,21 @@ router.route('/')
     // delete: {$not: {$eq: true}}
   }
   // get请求中查询字符串中得到的都是string。
-  if (delStatus === 'true') {
-    filter.delete = {$eq: true}
-  } else {
-    filter.delete = {$eq: false}
+  switch (delStatus) {
+    case 'true':
+      filter.delete = {$eq: true}
+      break
+    case 'false':
+      filter.delete = {$eq: false}
+      break
+    default:
+      break
   }
+  // if (delStatus === 'true') {
+  //   filter.delete = {$eq: true}
+  // } else {
+  //   // filter.delete = {$eq: false}
+  // }
   if (name) {
     filter.name = new RegExp(name, 'i')
   }
