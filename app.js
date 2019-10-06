@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose')
 var config = require('./config')
 var passport = require('passport')
+var cors = require('./routes/cors')
 
 // 引入路由
 var index = require('./routes/index');
@@ -42,7 +43,8 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// 允许跨域访问静态资源
+app.use(cors.corsWithOptions, express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/users', users);
