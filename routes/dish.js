@@ -4,8 +4,9 @@ let express = require('express'),
   Dish = require('../models/dish'),
   authenticate = require('../authenticate'),
   cors = require('./cors'),
-  multer = require('multer')
-  config = require('../config')
+  multer = require('multer'),
+  config = require('../config'),
+  fs = require('fs')
   // formidable = require('express-formidabe')
 
 router.use(bodyParser.json())
@@ -153,11 +154,34 @@ router.route('/:dishId')
     series: series
   }
   let dish = new Dish(o)
-  Dish.findOneAndUpdate({_id: req.params.dishId}, o, {new: true}).exec().then(dish => {
+  Dish.findById(req.params.dishId).exec().then(dish => {
     if (dish) {
-      res.status(200).json({result: true, message: '', data: dish})
+      let arr = [dish.imageBig, dish.imageMiddle, dish.imageSmall]
+      for (let i = 0, iLen = arr.length; i < iLen; i++) {
+        fs.access(arr[i], (err) => {
+          // 存在为null，否则为error
+          if (err) {
+          } else {
+            fs.unlinkSync(arr[i], (err) => {
+              if (err) {
+                throw err
+              }
+            })
+          }
+        })
+      }
+      Dish.findOneAndUpdate({_id: req.params.dishId}, o, {new: true}).exec().then(dish => {
+        // console.log(dish)
+        if (dish) {
+          res.status(200).json({result: true, message: '', data: dish})
+        } else {
+          res.status(500).json({result: false, message: dish, error: dish})
+        }
+      }).catch(err => {
+        next(err)
+      })
     } else {
-      res.status(500).json({result: false, message: dish, error: dish})
+      res.status(500).json({result: false, message: '更新失败', error: dish})
     }
   }).catch(err => {
     next(err)
