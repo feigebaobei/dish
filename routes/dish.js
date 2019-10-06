@@ -41,10 +41,16 @@ router.route('/')
   res.sendStatus(200)
 })
 .get(cors.corsWithOptions, (req, res, next) => {
-  let {name, taste, page, size} = req.query
+  let {name, delete: delStatus, taste, page, size} = req.query
   taste = taste || []
   let filter = {
-    delete: {$not: {$eq: true}}
+    // delete: {$not: {$eq: true}}
+  }
+  // get请求中查询字符串中得到的都是string。
+  if (delStatus === 'true') {
+    filter.delete = {$eq: true}
+  } else {
+    filter.delete = {$eq: false}
   }
   if (name) {
     filter.name = new RegExp(name, 'i')
@@ -54,6 +60,7 @@ router.route('/')
       return Number(item)
     })}
   }
+  console.log(filter)
   Dish.countDocuments(filter).exec().then(amount => {
     // res.status(200).json({data: {amount: amount}})
     // // res.send(amount)
@@ -137,9 +144,9 @@ router.route('/:dishId')
     {name: 'imageMiddle', maxCount: 1},
     {name: 'imageSmall', maxCount: 1}
   ]), (req, res, next) => {
-  let {name, description, taste, price, compose, status, category, series} = req.body
+  let {name, description, taste, price, compose, status, delete: delStatus, category, series} = req.body
   // console.log(req.files)
-  // console.log(req.body)
+  console.log(req.body)
   let o = {
     imageBig: `${req.files.imageBig[0].destination}/${req.files.imageBig[0].filename}`,
     imageMiddle: `${req.files.imageMiddle[0].destination}/${req.files.imageMiddle[0].filename}`,
@@ -150,6 +157,7 @@ router.route('/:dishId')
     price: price,
     compose: compose,
     status: status,
+    delete: delStatus,
     category: category,
     series: series
   }
@@ -186,26 +194,8 @@ router.route('/:dishId')
   }).catch(err => {
     next(err)
   })
-  // return
-  // Dish.findById(req.params.dishId).exec().then(dish => {
-  //   if (dish !== null) {
-  //     let {name, description, price} = req.body
-  //     dish.name = name
-  //     dish.description = description
-  //     dish.price = price
-  //     dish.save().then(dish => {
-  //       res.status(200).json({result: true, message: '', data: dish})
-  //     }).catch(err => {
-  //       res.status(500).json({result: false, message: '保存数据时出错', error: err})
-  //     })
-  //   } else {
-  //     res.status(404).json({result: false, message: 'do not find.'})
-  //   }
-  // }).catch(err => {
-  //   res.status(500).json({result: false, message: `do not find dishId:${req.params.dishId}`, error: err})
-  // })
 })
-.delete(cors.corsWithOptions, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   Dish.findOne({_id: req.params.dishId}).exec().then(dish => {
     dish.delete = true
     dish.save().then(dish => {
