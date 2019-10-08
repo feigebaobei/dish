@@ -13,6 +13,7 @@ var cors = require('./routes/cors')
 var index = require('./routes/index');
 var users = require('./routes/users');
 var dish = require('./routes/dish');
+var order = require('./routes/order')
 
 // 连接数据库
 const url = config.mongoUrl
@@ -49,6 +50,7 @@ app.use(cors.corsWithOptions, express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/users', users);
 app.use('/dish', dish);
+app.use('/order', order);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
