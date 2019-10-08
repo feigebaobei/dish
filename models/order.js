@@ -1,6 +1,9 @@
 let mongoose = require('mongoose'),
   Schema = mongoose.Schema
 
+require('mongoose-currency').loadType(mongoose)
+const Currency = mongoose.Types.Currency
+
 let dishSchema = new Schema({
   dish: {
     type: mongoose.Schema.Types.ObjectId,
@@ -12,6 +15,10 @@ let dishSchema = new Schema({
     required: true
   }
 })
+
+// let dishSchema = new Schema({
+//   name: ''
+// })
 
 let orderSchema = new Schema({
   consumer: {
@@ -27,6 +34,11 @@ let orderSchema = new Schema({
       },
       'dishes of order is empty.'
     ]
+  },
+  totalPrice: {
+    type: Currency,
+    required: true,
+    min: 0
   }
 }, {
   timestamps: true
