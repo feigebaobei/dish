@@ -4,7 +4,8 @@ let express = require('express'),
   Order = require('../models/order'),
   Dish = require('../models/dish'),
   cors = require('./cors'),
-  authenticate = require('../authenticate')
+  authenticate = require('../authenticate'),
+  util = require('../util')
 
 router.use(bodyParser.json())
 
@@ -12,8 +13,25 @@ router.route('/')
 .options(cors.corsWithOptions, (req, res) => {
   res.sendStatus(200)
 })
-.get(cors.corsWithOptions, (req, res, next) => {
-  res.send('get')
+.get(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+  console.log(req.query)
+  let page = util.range(Number(req.query.page), 0, 100)
+  let size = util.range(Number(req.query.size), 0, 200)
+  let setOptions = {
+    skip: page * size,
+    limit: Number(size)
+  }
+  Order.find({consumer: req.user._id}, null, setOptions).populate('dishes.dish').exec().then(orderes => {
+    console.log(orderes)
+    if (orderes) {
+        res.setHeader('Content-Type', 'application/json')
+        res.status(200).json({result: true, message: '', data: orderes})
+    } else {
+      next()
+    }
+  }).catch(err => {
+    console.log(err)
+  })
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   // res.send('post')
@@ -55,7 +73,7 @@ router.route('/')
           .then(order => {
             // 肯定能查到订单
             res.setHeader('Content-Type', 'application/json')
-            res.status(200).json({reuslt: true, message: '', data: order})
+            res.status(200).json({result: true, message: '', data: order})
           })
           .catch(err => {
             next(err)
@@ -74,5 +92,22 @@ router.route('/')
 .delete(cors.corsWithOptions, (req, res, next) => {
   res.send('delete')
 })
+
+// router.route('/')
+// .options(cors.corsWithOptions, (req, res) => {
+//   res.sendStatus(200)
+// })
+// .get(cors.corsWithOptions, (req, res, next) => {
+//   res.send('get')
+// })
+// .post(cors.corsWithOptions, (req, res, next) => {
+//   res.send('post')
+// })
+// .put(cors.corsWithOptions, (req, res, next) => {
+//   res.send('put')
+// })
+// .delete(cors.corsWithOptions, (req, res, next) => {
+//   res.send('delete')
+// })
 
 module.exports = router

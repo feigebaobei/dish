@@ -7,7 +7,7 @@ const Currency = mongoose.Types.Currency
 let dishSchema = new Schema({
   dish: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Dishes'
+    ref: 'Dish'
   },
   amount: {
     type: Number,
@@ -30,6 +30,7 @@ let orderSchema = new Schema({
     type: [dishSchema],
     validate: [
       arr => {
+        // console.log(arr)
         return arr.length > 0
       },
       'dishes of order is empty.'
