@@ -268,6 +268,25 @@ router.route('/:dishId/comment')
           $limit: size
         })
       }
+      stages.push({
+        $lookup: {
+          // from: 'user', // no
+          from: 'users',
+          localField: 'comments.auther',
+          foreignField: '_id',
+          as: 'comments.author'
+        }
+      }, {
+        // 这个comments.auther应该删除
+        // $unset: ['comments.auther', 'comments.author.hash', 'comments.author.salt', 'comments.author.__v', 'comments.author._id']
+        $project: {
+          'comments.auther': 0,
+          'comments.author.hash': 0,
+          'comments.author.salt': 0,
+          'comments.author.__v': 0,
+          'comments.author._id': 0
+        }
+      })
       Dish.aggregate(stages).then(comments => {
         res.status(200).json({result: true, message: '', data: comments})
       }).catch(err => next(err))
@@ -292,6 +311,24 @@ router.route('/:dishId/comment')
           $limit: size
         })
       }
+      stages.push({
+        $lookup: {
+          from: 'users',
+          localField: 'comments.auther',
+          foreignField: '_id',
+          as: 'comments.author'
+        }
+      }, {
+        // 这个comments.auther应该删除
+        // $unset: ['comments.auther', 'comments.author.hash', 'comments.author.salt', 'comments.author.__v', 'comments.author._id']
+        $project: {
+          'comments.auther': 0,
+          'comments.author.hash': 0,
+          'comments.author.salt': 0,
+          'comments.author.__v': 0,
+          'comments.author._id': 0
+        }
+      })
       Dish.aggregate(stages).then(comments => {
         res.status(200).json({result: true, message: '', data: comments})
       }).catch(err => next(err))

@@ -25,8 +25,8 @@ let range = (number, min, max) => {
 }
 
 let propComposeArray = (arr, prop) => {
-  if (Array.isArray(arr)) {
-    arr.reduce((r, c) => {
+   if (Array.isArray(arr)) {
+    return arr.reduce((r, c) => {
       if (c.toString() === '[object Object]') {
         r.push(c[prop])
       } else {
