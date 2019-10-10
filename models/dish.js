@@ -5,15 +5,28 @@ const Currency = mongoose.Types.Currency
 const config = require('../config')
 
 let commentSchema = new Schema({
-  rating: {
+  videoRating: {
     type: Number,
     min: 1,
     max: 5,
     required: true
   },
-  comment: {
-    type: String,
+  odourRating: {
+    type: Number,
+    min: 1,
+    max: 5,
     required: true
+  },
+  tasteRating: {
+    type: Number,
+    min: 1,
+    max: 5,
+    required: true
+  },
+  content: {
+    type: String,
+    required: true,
+    maxlength: 200
   },
   auther: {
     type: mongoose.Schema.Types.ObjectId,

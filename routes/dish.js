@@ -1,12 +1,14 @@
 let express = require('express'),
   router = express.Router(),
   bodyParser = require('body-parser'),
+  mongoose = require('mongoose'),
   Dish = require('../models/dish'),
   authenticate = require('../authenticate'),
   cors = require('./cors'),
   multer = require('multer'),
   config = require('../config'),
-  fs = require('fs')
+  fs = require('fs'),
+  util = require('../util')
   // formidable = require('express-formidabe')
 
 router.use(bodyParser.json())
@@ -139,7 +141,7 @@ router.route('/:dishId')
 })
 .get(cors.corsWithOptions, (req, res, next) => {
   let dishId = req.params.dishId
-  Dish.findById(dishId).exec().then(dish => {
+  Dish.findById(dishId, '-comments').exec().then(dish => {
     // 价格的单位由分变为元的工作在前端做
     res.status(200).json({result: true, message: '', data: dish})
   }).catch(err => {
@@ -224,13 +226,152 @@ router.route('/:dishId')
   // })
 })
 
-// router.route('/test')
+router.route('/:dishId/comment')
+.options(cors.corsWithOptions, (req, res) => {
+  res.sendStatus(200)
+})
+.get(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+  let {page, size, user} = req.query
+  let stages = []
+  page = util.range(Number(page || 0), 0, 100)
+  size = util.range(Number(size || 0), 0, 200)
+  switch (user) {
+    case 'all':
+    default:
+      let setOptions = {
+        skip: page * size,
+        limit: size
+      }
+      Dish.findById(req.params.dishId, 'comments', setOptions).populate('Dish.comments').then(comments => {
+        res.status(200).json({result: true, message: '', data: comments})
+      }).catch(err => {
+        next(err)
+      })
+      break
+    case 'current':
+      stages = [
+        {$match: {_id: mongoose.Types.ObjectId(req.params.dishId)}},
+        {
+          $project: {comments: 1, _id: 0}
+        },
+        {
+          $unwind: '$comments'
+        },
+        {
+          $match: {'comments.auther': req.user._id}
+        }
+      ]
+      if (page && size) {
+        stages.push({
+          $skip: page * size
+        }, {
+          $limit: size
+        })
+      }
+      Dish.aggregate(stages).then(comments => {
+        res.status(200).json({result: true, message: '', data: comments})
+      }).catch(err => next(err))
+      break
+    case 'other':
+      stages = [
+        {$match: {_id: mongoose.Types.ObjectId(req.params.dishId)}},
+        {
+          $project: {comments: 1, _id: 0}
+        },
+        {
+          $unwind: '$comments'
+        },
+        {
+          $match: {'comments.auther': {$not: {$eq: req.user._id}}}
+        }
+      ]
+      if (page && size) {
+        stages.push({
+          $skip: page * size
+        }, {
+          $limit: size
+        })
+      }
+      Dish.aggregate(stages).then(comments => {
+        res.status(200).json({result: true, message: '', data: comments})
+      }).catch(err => next(err))
+      break
+  }
+})
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+  Dish.findById(req.params.dishId).then(dish => {
+    if (dish !== null) {
+      let currentComment = {
+        videoRating: req.body.videoRating,
+        odourRating: req.body.odourRating,
+        tasteRating: req.body.tasteRating,
+        content: req.body.content,
+        auther: req.user._id
+      }
+      dish.comments.push(currentComment)
+      dish.save().then(dish => {
+        res.status(200).json({result: true, message: '', data: dish})
+      }).catch(err => next(err))
+    } else {
+      let err = new Error(`Dish ${req.params.dishId} not found`)
+      err.status = 404
+      return next(err)
+    }
+  }).catch(err => {
+    next(err)
+  })
+})
+.put((req, res, next) => {
+  res.send('put')
+})
+.delete((req, res, next) => {
+  res.send('delete')
+})
+
+// router.route('/:dishId/commentCurrentUser') // 查询当前用户的评论
 // .options(cors.corsWithOptions, (req, res) => {
 //   res.sendStatus(200)
 // })
-// .get()
-// .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-//   res.status(200).json({key: 'value'})
+// .get(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+//   Dish.aggregate(
+//     [
+//       {$match: {_id: mongoose.Types.ObjectId(req.params.dishId)}},
+//       {
+//         $project: {comments: 1, _id: 0}
+//       },
+//       {
+//         $unwind: '$comments'
+//       },
+//       {
+//         $match: {'comments.auther': req.user._id}
+//       }
+//     ]
+//   ).then(comments => {
+//     res.status(200).json({result: true, message: '', data: comments})
+//   }).catch(err => next(err))
+// })
+
+// router.route('/:dishId/commentOtherUser') // 查询非当前用户的评论
+// .options(cors.corsWithOptions, (req, res) => {
+//   res.sendStatus(200)
+// })
+// .get(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+//   Dish.aggregate(
+//     [
+//       {$match: {_id: mongoose.Types.ObjectId(req.params.dishId)}},
+//       {
+//         $project: {comments: 1, _id: 0}
+//       },
+//       {
+//         $unwind: '$comments'
+//       },
+//       {
+//         $match: {'comments.auther': {$not: {$eq: req.user._id}}}
+//       }
+//     ]
+//   ).then(comments => {
+//     res.status(200).json({result: true, message: '', data: comments})
+//   }).catch(err => next(err))
 // })
 
 module.exports = router
