@@ -376,7 +376,7 @@ router.route('/:dishId/comment/:commentId')
   Dish.findById(req.params.dishId).then(dish => {
     if (dish != null && dish.comments.id(req.params.commentId)) {
       // 是否是评论的作者
-      if (dish.comments.id(req.params.commentId).author.toString() == req.user._id) {
+      if (dish.comments.id(req.params.commentId).author.toString() === req.user._id.toString()) {
         if (req.body.videoRating) {
           dish.comments.id(req.params.commentId).videoRating = req.body.videoRating
         }
@@ -405,7 +405,27 @@ router.route('/:dishId/comment/:commentId')
   }).catch(err => next(err))
 })
 .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-  res.send('delete')
+  // res.send('delete')
+  Dish.findById(req.params.dishId).then(dish => {
+    if (dish !== null && dish.comments.id(req.params.commentId)) {
+      if (dish.comments.id(req.params.commentId).author.toString() == req.user._id.toString()) {
+        dish.comments.id(req.params.commentId).remove()
+        // 硬删除
+        dish.save().then(dish => {
+          console.log(dish)
+          res.status(200).json({result: true, message: '删除成功', data: {}})
+        })
+      } else {
+        res.status(403).json({result: true, message: '你不是评论的作者', data: {}})
+      }
+    } else {
+      if (dish === null) {
+        next(new Error(`Dish ${req.params.dishId} not found`).status = 404)
+      } else {
+        next(new Error(`Comment ${req.params.commentId} not found`).status = 404)
+      }
+    }
+  })
 })
 
 // router.route('/:dishId/commentCurrentUser') // 查询当前用户的评论
