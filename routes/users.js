@@ -51,13 +51,14 @@ router.post('/signup', (req, res, next) => {
 
 router.route('/isLogin')
 .options(cors.corsWithOptions, (req, res) => {
-  // console.log(req.origin)
-  // res.sendStatus(200)
+  console.log(req.origin)
+  res.sendStatus(200)
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   // let token = res.cookies.token
   // console.log(req, res)
-  res.send('string')
+  // res.send('string')
+  res.status(200).json({result: true, data: {}, message: 'You had logged in!'})
 })
 
 router.route('/login')
@@ -67,9 +68,17 @@ router.route('/login')
 })
 .post(cors.corsWithOptions, passport.authenticate('local'), (req, res, next) => {
   let token = authenticate.getToken({_id: req.user._id})
-  res.setHeader('Content-Type', 'application/json')
-  res.cookie('token', token, {httpOnly: true})
-  res.status(200).json({result: true, token: token, message: 'You are successful logged in!'})
+  User.findById(req.user._id, 'username').then(user => {
+    res.setHeader('Content-Type', 'application/json')
+    res.status(200).json({result: true, data: {
+      token: token,
+      user: { // 后期可能增加其他数据
+        username: user.username
+      }
+    }, message: 'You are successful logged in!'})
+    
+  })
+  // res.cookie('token', token, {httpOnly: true})
 })
 
 router.post('/logout', (req, res, next) => {

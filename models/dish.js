@@ -28,7 +28,8 @@ let commentSchema = new Schema({
     required: true,
     maxlength: 200
   },
-  auther: {
+  // auther: {
+  author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }

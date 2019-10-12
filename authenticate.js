@@ -19,8 +19,8 @@ let fromCookieExtractor = (req) => {
   return token
 }
 var options = {
-  // jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken()
-  jwtFromRequest: fromCookieExtractor,
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  // jwtFromRequest: fromCookieExtractor,
   secretOrKey: config.secretKey
 }
 

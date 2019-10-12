@@ -42,7 +42,7 @@ router.route('/')
 .options(cors.corsWithOptions, (req, res) => {
   res.sendStatus(200)
 })
-.get(cors.corsWithOptions, (req, res, next) => {
+.get(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
   let {name, delete: delStatus, taste, page, size} = req.query
   taste = taste || []
   let filter = {
@@ -258,7 +258,7 @@ router.route('/:dishId/comment')
           $unwind: '$comments'
         },
         {
-          $match: {'comments.auther': req.user._id}
+          $match: {'comments.author': req.user._id}
         }
       ]
       if (page && size) {
@@ -272,15 +272,13 @@ router.route('/:dishId/comment')
         $lookup: {
           // from: 'user', // no
           from: 'users',
-          localField: 'comments.auther',
+          localField: 'comments.author',
           foreignField: '_id',
           as: 'comments.author'
         }
       }, {
-        // 这个comments.auther应该删除
-        // $unset: ['comments.auther', 'comments.author.hash', 'comments.author.salt', 'comments.author.__v', 'comments.author._id']
         $project: {
-          'comments.auther': 0,
+          // 'comments.author': 0,
           'comments.author.hash': 0,
           'comments.author.salt': 0,
           'comments.author.__v': 0,
@@ -301,7 +299,7 @@ router.route('/:dishId/comment')
           $unwind: '$comments'
         },
         {
-          $match: {'comments.auther': {$not: {$eq: req.user._id}}}
+          $match: {'comments.author': {$not: {$eq: req.user._id}}}
         }
       ]
       if (page && size) {
@@ -314,15 +312,14 @@ router.route('/:dishId/comment')
       stages.push({
         $lookup: {
           from: 'users',
-          localField: 'comments.auther',
+          localField: 'comments.author',
           foreignField: '_id',
           as: 'comments.author'
         }
       }, {
         // 这个comments.auther应该删除
-        // $unset: ['comments.auther', 'comments.author.hash', 'comments.author.salt', 'comments.author.__v', 'comments.author._id']
         $project: {
-          'comments.auther': 0,
+          // 'comments.author': 0,
           'comments.author.hash': 0,
           'comments.author.salt': 0,
           'comments.author.__v': 0,
@@ -343,7 +340,7 @@ router.route('/:dishId/comment')
         odourRating: req.body.odourRating,
         tasteRating: req.body.tasteRating,
         content: req.body.content,
-        auther: req.user._id
+        author: req.user._id
       }
       dish.comments.push(currentComment)
       dish.save().then(dish => {
@@ -365,6 +362,52 @@ router.route('/:dishId/comment')
   res.send('delete')
 })
 
+router.route('/:dishId/comment/:commentId')
+.options(cors.corsWithOptions, (req, res) => {
+  res.sendStatus(200)
+})
+.get((req, res, next) => {
+  res.send('get')
+})
+.post((req, res, next) => {
+  res.send('post')
+})
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+  Dish.findById(req.params.dishId).then(dish => {
+    if (dish != null && dish.comments.id(req.params.commentId)) {
+      // 是否是评论的作者
+      if (dish.comments.id(req.params.commentId).author.toString() == req.user._id) {
+        if (req.body.videoRating) {
+          dish.comments.id(req.params.commentId).videoRating = req.body.videoRating
+        }
+        if (req.body.odourRating) {
+          dish.comments.id(req.params.commentId).odourRating = req.body.odourRating
+        }
+        if (req.body.tasteRating) {
+          dish.comments.id(req.params.commentId).tasteRating = req.body.tasteRating
+        }
+        if (req.body.content) {
+          dish.comments.id(req.params.commentId).content = req.body.content
+        }
+        dish.save().then(dish => {
+          res.status(200).json({result: true, message: '', data: dish})
+        })
+      } else {
+        res.status(403).json({result: true, message: '你不是评论的作者', data: {}})
+      }
+    } else {
+      if (dish === null) {
+        next(new Error(`Dish ${req.params.dishId} not found`).status = 404)
+      } else {
+        next(new Error(`Comment ${req.params.commentId} not found`).status = 404)
+      }
+    }
+  }).catch(err => next(err))
+})
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+  res.send('delete')
+})
+
 // router.route('/:dishId/commentCurrentUser') // 查询当前用户的评论
 // .options(cors.corsWithOptions, (req, res) => {
 //   res.sendStatus(200)
@@ -380,7 +423,7 @@ router.route('/:dishId/comment')
 //         $unwind: '$comments'
 //       },
 //       {
-//         $match: {'comments.auther': req.user._id}
+//         $match: {'comments.author': req.user._id}
 //       }
 //     ]
 //   ).then(comments => {
@@ -403,7 +446,7 @@ router.route('/:dishId/comment')
 //         $unwind: '$comments'
 //       },
 //       {
-//         $match: {'comments.auther': {$not: {$eq: req.user._id}}}
+//         $match: {'comments.author': {$not: {$eq: req.user._id}}}
 //       }
 //     ]
 //   ).then(comments => {
