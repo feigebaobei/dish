@@ -89,6 +89,7 @@ router.route('/')
       res.setHeader('Content-Type', 'application/json')
       res.status(200).json({
         result: true,
+        message: '',
         data: {
           dishes: dishes,
           amount: amount

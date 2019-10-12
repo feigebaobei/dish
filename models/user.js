@@ -5,15 +5,15 @@ var User = new Schema({
   // passport-local-mongoose 会添加username / password字段
   firstname: {
     type: String,
-    defautl: ''
+    default: ''
   },
   lastname: {
     type: String,
-    defautl: ''
+    default: ''
   },
   admin: {
     type: Boolean,
-    defautl: false
+    default: false
   }
 })
 User.plugin(passportLocalMongoose)
