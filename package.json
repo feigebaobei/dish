@@ -7,11 +7,11 @@
     "debug":"node --debug ./bin/www"
   },
   "dependencies": {
-    "body-parser": "^1.17.2",
+    "body-parser": "^1.20.1",
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.5",
     "debug": "~2.6.3",
-    "express": "~4.15.2",
+    "express": "~4.15.5",
     "express-formidable": "^1.2.0",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
